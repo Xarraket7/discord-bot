@@ -29,7 +29,8 @@ tree = app_commands.CommandTree(client)
 # --- Приветствие ---
 @client.event
 async def on_ready():
-    await tree.sync()
+    guild = discord.Object(id=1483338409677164627)
+    await tree.sync(guild=guild)
     print(f"Бот запущен: {client.user}")
 
 @client.event
@@ -52,7 +53,7 @@ async def on_member_join(member):
         await channel.send(embed=embed)
 
 # --- Команда /announce ---
-@tree.command(name="announce", description="Отправить объявление с гифкой в канал")
+@tree.command(name="announce", description="Отправить объявление с гифкой в канал", guild=discord.Object(id=1483338409677164627))
 @app_commands.describe(текст="Текст объявления", гифка="Ссылка на GIF")
 async def announce(interaction: discord.Interaction, текст: str, гифка: str = None):
     channel = client.get_channel(CHANNEL_ID)
@@ -69,17 +70,3 @@ async def announce(interaction: discord.Interaction, текст: str, гифка
         await interaction.response.send_message("✅ Объявление отправлено!", ephemeral=True)
 
 client.run(os.environ['TOKEN'])
-```
-
----
-
-## Как пользоваться:
-
-В Discord пиши:
-```
-/announce текст:Привет всем! гифка:ССЫЛКА_НА_GIF
-```
-
-Или без гифки:
-```
-/announce текст:Сегодня ивент в 18:00!
