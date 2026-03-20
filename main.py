@@ -1,13 +1,10 @@
 import discord
+from discord import app_commands
 import os
-import time
-import logging
 from flask import Flask
 from threading import Thread
 
-logging.basicConfig(level=logging.INFO)
-
-# --- Веб-сервер для UptimeRobot ---
+# --- Веб-сервер ---
 app = Flask('')
 
 @app.route('/')
@@ -19,18 +16,20 @@ def run():
 
 Thread(target=run).start()
 
-# --- Настройки бота ---
+# --- Настройки ---
 CHANNEL_ID = 1483887310771847296
-
 GIF_URL = "https://cdn.discordapp.com/attachments/1312367256038019092/1483904073110523974/homelander-appreciate-smile.gif_1.gif?ex=69bc48dc&is=69baf75c&hm=45acb995801854b8278e89b893964b82f4a3cd7c73bd0b16c9f8c9bfefb0d0e6&"
 
 intents = discord.Intents.default()
 intents.members = True
 
 client = discord.Client(intents=intents)
+tree = app_commands.CommandTree(client)
 
+# --- Приветствие ---
 @client.event
 async def on_ready():
+    await tree.sync()
     print(f"Бот запущен: {client.user}")
 
 @client.event
@@ -40,7 +39,7 @@ async def on_member_join(member):
         embed = discord.Embed(
             title=f"👋 Добро пожаловать на сервер {member.guild.name}!",
             description=(
-                f"Привет, {member.mention}! Рады видеть тебя здесь 🎉\n\n"
+                f"Привет, {member.mention}! Рады тебя видеть 🎉\n\n"
                 f"📌 Обязательно прочитай правила сервера\n"
                 f"🎮 Желаем приятного времяпровождения!\n"
                 f"💬 Не стесняйся — представься в чате"
@@ -52,10 +51,35 @@ async def on_member_join(member):
         embed.set_footer(text=f"Ты {member.guild.member_count}-й участник сервера!")
         await channel.send(embed=embed)
 
-while True:
-    try:
-        client.run(os.environ['TOKEN'])
-    except Exception as e:
-        logging.error(f"Бот упал с ошибкой: {e}")
-        logging.info("Перезапуск через 5 секунд...")
-        time.sleep(5)
+# --- Команда /announce ---
+@tree.command(name="announce", description="Отправить объявление с гифкой в канал")
+@app_commands.describe(текст="Текст объявления", гифка="Ссылка на GIF")
+async def announce(interaction: discord.Interaction, текст: str, гифка: str = None):
+    channel = client.get_channel(CHANNEL_ID)
+    if isinstance(channel, discord.TextChannel):
+        embed = discord.Embed(
+            title="📢 Объявление!",
+            description=текст,
+            color=0xFF5733
+        )
+        if гифка:
+            embed.set_image(url=гифка)
+        embed.set_footer(text=f"Отправил: {interaction.user.name}")
+        await channel.send(embed=embed)
+        await interaction.response.send_message("✅ Объявление отправлено!", ephemeral=True)
+
+client.run(os.environ['TOKEN'])
+```
+
+---
+
+## Как пользоваться:
+
+В Discord пиши:
+```
+/announce текст:Привет всем! гифка:ССЫЛКА_НА_GIF
+```
+
+Или без гифки:
+```
+/announce текст:Сегодня ивент в 18:00!
