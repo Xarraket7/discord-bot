@@ -19,7 +19,6 @@ Thread(target=run).start()
 # --- Настройки ---
 CHANNEL_ID = 1483887310771847296
 ANNOUNCE_CHANNEL_ID = 1483338410583396474
-
 GIF_URL = "https://cdn.discordapp.com/attachments/1312367256038019092/1483904073110523974/homelander-appreciate-smile.gif_1.gif?ex=69bc48dc&is=69baf75c&hm=45acb995801854b8278e89b893964b82f4a3cd7c73bd0b16c9f8c9bfefb0d0e6&"
 
 intents = discord.Intents.default()
@@ -56,8 +55,8 @@ async def on_member_join(member):
 
 # --- Команда /announce ---
 @tree.command(name="announce", description="Отправить объявление в общий чат", guild=discord.Object(id=1483338409677164627))
-@app_commands.describe(текст="Текст объявления", гифка="Ссылка на GIF")
-async def announce(interaction: discord.Interaction, текст: str, гифка: str = None):
+@app_commands.describe(текст="Текст объявления", гифка="Ссылка на GIF", фото="Ссылка на фото")
+async def announce(interaction: discord.Interaction, текст: str, гифка: str = None, фото: str = None):
     channel = client.get_channel(ANNOUNCE_CHANNEL_ID)
     if isinstance(channel, discord.TextChannel):
         embed = discord.Embed(
@@ -65,6 +64,8 @@ async def announce(interaction: discord.Interaction, текст: str, гифка
             description=текст,
             color=0xFF5733
         )
+        if фото:
+            embed.set_image(url=фото)
         if гифка:
             embed.set_image(url=гифка)
         await channel.send(embed=embed)
